@@ -25,8 +25,6 @@ address  =  st.sidebar.text_input('Enter Address:', default_address)
 geoloc = Nominatim(user_agent='MyNWS_Emulator')
 location = geoloc.geocode(address)
 if location is None or not isinstance(location, geopy.location.Location):
-    #st.sidebar.exception(ValueError('Bad address entered. Try a zipcode or a more specific address.'))
-    #st.sidebar.exception('Bad address entered. Try a zipcode or a more specific address.')
     st.sidebar.info('Bad address entered. Try a zipcode or a more specific address.')
     st.sidebar.warning('...Picking random address...')
     lat, lon = np.random.uniform(30,55), np.random.uniform(-120,-70)
@@ -78,36 +76,21 @@ daily_forecast_data = daily_forecast_response.json()
 daily_forecast      = pd.DataFrame( daily_forecast_data['properties']['periods']).sort_values(by='number')
 
 #------------------------------------------------------------
-# Extract the relevant forecast information we want to display
-#------------------------------------------------------------
-names     = daily_forecast.name.values
-pictures  = daily_forecast.icon.values
-shortinfos= daily_forecast.shortForecast.values
-details   = daily_forecast.detailedForecast.values
-temps     = daily_forecast.temperature
-units     = daily_forecast.temperatureUnit.iloc[0]
-timeofday = daily_forecast.isDaytime.values
-
-#------------------------------------------------------------
 # Create the City and State header
 #------------------------------------------------------------
-st.markdown(f'<h1>{city_state}</h1>', unsafe_allow_html=True)
+st.markdown(f'# {city_state}')
 st.markdown('<div class="dropdown-divider"></div>', unsafe_allow_html=True)
 st.markdown('<div class="dropdown-divider"></div>', unsafe_allow_html=True)
 
 #------------------------------------------------------------
 # Loop over each forecast time of day and print
 #------------------------------------------------------------
-for name, picture, shortinfo, detail, temp, tod in zip(names, pictures, shortinfos, details, temps, timeofday):
-    Current_Day = f'''#### {name} 
-    ![weather image]({picture} "{shortinfo}") #### {shortinfo} -- {temp} {units}
-    {detail}'''
-    #st.markdown(Current_Day)
-    highlow = 'High: ' if tod else 'Low: '
-    st.subheader(name)
-    st.image(picture)
-    st.markdown(f'**{highlow}**{temp} {units}') # -- ***{shortinfo}***')
-    st.markdown(detail)
+for i,row in daily_forecast.iterrows():
+    highlow = 'High: ' if row.isDaytime else 'Low: '
+    st.subheader(row['name'])
+    st.image(row.icon)
+    st.markdown(f'**{highlow}**{row.temperature} {row.temperatureUnit}') # -- ***{shortinfo}***')
+    st.markdown(row.detailedForecast)
     st.markdown('<div class="dropdown-divider"></div>', unsafe_allow_html=True)
 
 
